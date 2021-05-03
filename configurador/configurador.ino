@@ -41,7 +41,7 @@ void can_msg_rcv(){
       Serial.print("H");
       Serial.println(aux, DEC); //Devuelve las celdas entre la 9 y la 12 que se estan balanceando (4 primeros bits)
       break;}
-    case 64: //Se recibe el mensaje CAN de las celdas 1 a 4
+    case BAT_MSG1_ID: //Se recibe el mensaje CAN de las celdas 1 a 4
       for (int i=0; i<4 ; i++){
         Serial.print("M");
         Serial.print(i+1);
@@ -53,7 +53,7 @@ void can_msg_rcv(){
       Serial.println("M3" + ((can_msg_in.data[5] << 8) | can_msg_in.data[4])); //Se envia M3 que es V de celda 3
       Serial.println("M4" + ((can_msg_in.data[7] << 8) | can_msg_in.data[6])); //Se envia M4 que es V de celda 4*/
       break;    
-    case 65://Se recibe el mensaje CAN de las celdas 5 a 8
+    case BAT_MSG2_ID://Se recibe el mensaje CAN de las celdas 5 a 8
       for (int i=0; i<4 ; i++){
         Serial.print("N");
         Serial.print(i+1);
@@ -66,7 +66,7 @@ void can_msg_rcv(){
       Serial.println("N3" + ((can_msg_in.data[5] << 8) | can_msg_in.data[4])); //Se envia N3 que es V de celda 7
       Serial.println("N4" + ((can_msg_in.data[7] << 8) | can_msg_in.data[6])); //Se envia N4 que es V de celda 8*/
       break;
-    case 66:
+    case BAT_MSG3_ID:
       for (int i=0; i<4 ; i++){
         Serial.print("O");
         Serial.print(i+1);
@@ -114,14 +114,19 @@ void can_msg_rcv(){
         Serial.println(aux, DEC);
       }
       break;
-      
-    case 71:{ // SOC del pack
+    case CURRENT_MSG_ID:{ //Corriente medida de la batería
+      int current = 0;
+      current = ((can_msg_in.data[3] << 24)) + ((can_msg_in.data[2] << 16)) + ((can_msg_in.data[1] << 8)) + ((can_msg_in.data[0])) ;
+      Serial.print("Q");
+      Serial.println(current, DEC); //Se envia la corriente en mA
+    }
+    case SOC_MSG_ID:{ // SOC del pack
       Serial.print("T");
       uint8_t aux = can_msg_in.data[0];
       Serial.println(aux, DEC);
       //Serial.println("T"+can_msg_in.data[0]); //Se envia el SOC que es un numero en 1 byte
       break;}
-    case 72:{ //SOH del pack
+    case SOH_MSG_ID:{ //SOH del pack
       Serial.print("U");
       uint8_t aux = can_msg_in.data[0];
       Serial.println(aux, DEC);

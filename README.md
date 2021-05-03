@@ -1,7 +1,7 @@
 # BMS_CAN_programer
 Firmware del nodo que recibe los datos del CANBUS y comunica con el PC por Serial y configura el BMS por CAN envíando los parámetros transmitidos desde el PC por Serial.
-# Mensajes a envíar por puerto Serial
-Para realizar la comunicación con el CAN debe envíarse un mensaje por serial, configurado a 115200 baudios, formado por:
+# Mensajes a Enviar por puerto Serial
+Para realizar la comunicación con el CAN debe Enviarse un mensaje por serial, configurado a 115200 baudios, formado por:
 
 - 1 caracter ASCII: Es el identificador del mensaje.
 - 1 a 3 caracteres numéricos ASCII: Correpsondiente al valor de configuración.
@@ -20,7 +20,7 @@ Para realizar la comunicación con el CAN debe envíarse un mensaje por serial, 
     - "B125\n" = 125 * 0,02 = 2,5 V
 
 ### Valor de DCTO
-- El DCTO es el tiempo que dura activado el balanceo de una celda. Debe envíarse el ID='C' seguido de uno de los siguientes números:
+- El DCTO es el tiempo que dura activado el balanceo de una celda. Debe Enviarse el ID='C' seguido de uno de los siguientes números:
 
   - "DCTO0\n" = Se desactiva el TimeOut.
   - "DCTO1\n" = Se produce el balanceo de la Celda Cx durante 0.5 minutos
@@ -40,27 +40,27 @@ Para realizar la comunicación con el CAN debe envíarse un mensaje por serial, 
   - "DCTO15\n" = Se produce el balanceo de la Celda Cx durante 120 minutos
 
 ### Número de celdas conectadas
-- Configura el número de celdas en serie conectadas al BMS, comenzando por la celda C0. Se debe envíar el ID='D' seguido de un numero entre 1 y 12 para indicar el número de celdas:
+- Configura el número de celdas en serie conectadas al BMS, comenzando por la celda C0. Se debe Enviar el ID='D' seguido de un numero entre 1 y 12 para indicar el número de celdas:
   - "D12\n" = Configurar 12 celdas en serie
 
 ### Número de Termistores (NTC) conectados
-- Configura el número de NTC conectadas al BMS, comenzando por la NTC0. Se debe envíar el ID='E' seguido de un numero entre 1 y 32 para indicar el número de sensores:
+- Configura el número de NTC conectadas al BMS, comenzando por la NTC0. Se debe Enviar el ID='E' seguido de un numero entre 1 y 32 para indicar el número de sensores:
   - "E12\n" = Configurar 12 sensores NTC
 
 ### Máxima diferencia de voltaje entre celdas
-- Configura la diferencia de tensión máxima admisible entre celdas. Este parámetro es utilizado por el algoritmo de balanceo para activar el balanceo de las celdas cuando se supera este umbral. Debe envíarse el ID='I' seguido de un número entre 0 y 255 que indica los mV máximos de diferencia:
+- Configura la diferencia de tensión máxima admisible entre celdas. Este parámetro es utilizado por el algoritmo de balanceo para activar el balanceo de las celdas cuando se supera este umbral. Debe Enviarse el ID='I' seguido de un número entre 0 y 255 que indica los mV máximos de diferencia:
   - "I220\n" = Máxima diferencia admisible entre celdas de 220 mV
 
 ### Forzar el balanceo de las celdas 1 a la 8 (C0-C7)
-- Activa el balanceo de las celdas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C0* y *MSB=C7*), durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe envíarse el ID='G' seguido de 1 byte indicando las celdas a balancear:
+- Activa el balanceo de las celdas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C0* y *MSB=C7*), durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe Enviarse el ID='G' seguido de 1 byte indicando las celdas a balancear:
   - "G00111001\n" = Balancear las celdas 1,4,5 y 6
 
 ### Forzar el balanceo de las celdas 9 a la 12 (C8-C11)
-- Activa el balanceo de las celdas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*), durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe envíarse el ID='H' seguido de 1 byte indicando las celdas a balancear:
+- Activa el balanceo de las celdas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*), durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe Enviarse el ID='H' seguido de 1 byte indicando las celdas a balancear:
   - "G00001001\n" = Balancear las celdas 9 y 12 (C8 y 11).
 
 ### Pedir los valores de configuracion de la EEPROM del BMS.
-- Pide todos los parámetros de configuración que presenta almacenados el BMS en su EEPROM. Debe envíarse el ID='Z' seguido de un 1:
+- Pide todos los parámetros de configuración que presenta almacenados el BMS en su EEPROM. Debe Enviarse el ID='Z' seguido de un 1:
   - "Z1\n" = Pedir todos los parámetros de configuración.
 - Se espera recibir un mensaje de 8 bytes, con 1 byte por valor de configuración en el siguiente orden (desde el LSB al MSB): VUV, VOV, DCTO, NCELL, NNTC, DIF_CELL_V, CELL_BALANCING_C0-C7, CELL_BALANCING_C8-C11.
 
@@ -137,13 +137,20 @@ Por Puerto Serie se reciben en el PC los valores configurados con los comandos a
 - Se obtiene la temperatura de la NTCx como un byte que debe convertirse a un entero, restarle 5 y multiplicarse por 0.3 para obtener la Temperatura en ºC. Se recibe el ID='P' seguido de un número entre 01 y 32 (2 bytes de caracteres ASCII) y posteriormente un valor entre 0 y 255 correspondiente a la temperatura:
   - "P08225\n" = Temperatura de la celda 8 es de (225 - 5)*0.3 = 66 ºC
 
+### Valor de la corriente medida en la batería
+- Se obtiene el valor de la corriente a partir de la reconstrucción del entero partiendo de 4 bytes de datos. Se recibe el valor de la corriente en mA y dividido en 4 bytes, que se reconstruyen como se muestra a continuación:
+  - current = ((can_msg_in.data[0]) | (can_msg_in.data[1] << 8) | (can_msg_in.data[2] << 16) | (can_msg_in.data[3] << 24))
+- El ID que se envía por puerto serie es ID='Q' seguido del valor de corriente (mA) en decimal.
+  - "Q-16452\n" = Corriente de -16.542 Amperios (descarga)
+
 ### Valor de SOC del Pack
 - Se obtiene el valor del estado de carga como un byte que representa el porcentaje entre 0 y 100. Se recibe por serial en el PC el ID='T' seguido de un valor entre 0 y 255. Ese valor debe multiplicarse por 0,392:
  - "T220\n" = el SOC es de 220 * 0,392 = 86,24 %
 
 ### Valor de SOH del Pack
 - Se obtiene el valor del estado de salud como un byte que representa el porcentaje entre 0 y 100. Se recibe por serial en el PC el ID='U' seguido de un valor entre 0 y 255. Ese valor debe multiplicarse por 0,392:
-- "U220\n" = el SOH es de 220 * 0,392 = 86,24 %
+  - "U220\n" = el SOH es de 220 * 0,392 = 86,24 %
+
 
 
 # Mensajes CAN de Configuracion
@@ -216,7 +223,7 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
   - DLC = 1 byte
   - Valor = 255
 
-### envíar todas las configuraciones almacenadas en el BMS. Mensaje CAN
+### Enviar todas las configuraciones almacenadas en el BMS. Mensaje CAN
 - Este mensaje CAN devuelve los diferentes parámetros de configuración en 8 bytes. Su ID es ID = 0x0C.
   - El ID es ID=0x0C (ANSWER_CONFIG_MSG_ID)
   - DLC = 8 bytes
@@ -230,7 +237,7 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
     - data[6] = CELL_BALANCING_C0_C7
     - data[7] = CELL_BALANCING_C8_C11
 
-### envíar los valores en Voltios de las celdas 1 a la 4. Mensaje CAN
+### Enviar los valores en Voltios de las celdas 1 a la 4. Mensaje CAN
 - Este mensaje envía el voltaje de las celdas C0-C3 cada una de ellas como 2 bytes. El valor obtenido debe multiplicarse por 100 uV para tener el Voltaje de la celda.
   - ID=0x40 (DEC=64) (BAT_MSG1_ID)
   - DLC = 8 bytes
@@ -239,7 +246,7 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
   - Valor C0 = (data[4] | (data[5]<<8)) · 100 uV
   - Valor C0 = (data[6] | (data[7]<<8)) · 100 uV
 
-### envíar los valores en Voltios de las celdas 5 a la 8. Mensaje CAN
+### Enviar los valores en Voltios de las celdas 5 a la 8. Mensaje CAN
 - Este mensaje envía el voltaje de las celdas C4-C7 cada una de ellas como 2 bytes. El valor obtenido debe multiplicarse por 100 uV para tener el Voltaje de la celda.
     - ID=0x41 (DEC=65) (BAT_MSG2_ID)
     - DLC = 8 bytes
@@ -248,7 +255,7 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
     - Valor C6 = (data[4] | (data[5]<<8)) · 100 uV
     - Valor C7 = (data[6] | (data[7]<<8)) · 100 uV
 
-### envíar los valores en Voltios de las celdas 9 a la 12. Mensaje CAN
+### Enviar los valores en Voltios de las celdas 9 a la 12. Mensaje CAN
 - Este mensaje envía el voltaje de las celdas C8-C11 cada una de ellas como 2 bytes. El valor obtenido debe multiplicarse por 100 uV para tener el Voltaje de la celda.
     - ID=0x42 (DEC=66) (BAT_MSG3_ID)
     - DLC = 8 bytes
@@ -257,37 +264,37 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
     - Valor C10 = (data[4] | (data[5]<<8)) · 100 uV
     - Valor C11 = (data[6] | (data[7]<<8)) · 100 uV
 
-### envíar la Temperatura de las NTC 1 a la 8. Mensaje CAN
+### Enviar la Temperatura de las NTC 1 a la 8. Mensaje CAN
 - Este mensaje envía cada temperatura en 1 byte de datos.
   - ID = 0x43 (DEC=67) (TEMP_MSG1_ID)
   - DLC = 8 bytes
   - NTC0 a NTC7 = data[0] a data[7]. Debe restarse a cada entero 5 y multiplicar por 0,3.
 
-### envíar la Temperatura de las NTC 9 a la 16. Mensaje CAN
+### Enviar la Temperatura de las NTC 9 a la 16. Mensaje CAN
 - Este mensaje envía cada temperatura en 1 byte de datos.
   - ID = 0x44 (DEC=68) (TEMP_MSG2_ID)
   - DLC = 8 bytes
   - NTC8 a NTC15 = data[0] a data[7]. Debe restarse a cada entero 5 y multiplicar por 0,3
 
-### envíar la Temperatura de las NTC 17 a la 24. Mensaje CAN
+### Enviar la Temperatura de las NTC 17 a la 24. Mensaje CAN
 - Este mensaje envía cada temperatura en 1 byte de datos.
   - ID = 0x45 (DEC=69) (TEMP_MSG3_ID)
   - DLC = 8 bytes
   - NTC16 a NTC23 = data[0] a data[7]. Debe restarse a cada entero 5 y multiplicar por 0,3
 
-### envíar la Temperatura de las NTC 24 a la 32. Mensaje CAN
+### Enviar la Temperatura de las NTC 24 a la 32. Mensaje CAN
 - Este mensaje envía cada temperatura en 1 byte de datos.
   - ID = 0x46 (DEC=70) (TEMP_MSG4_ID)
   - DLC = 8 bytes
   - NTC16 a NTC31 = data[0] a data[7]. Debe restarse a cada entero 5 y multiplicar por 0,3
 
-### envíar el valor del SOC. Mensaje CAN
+### Enviar el valor del SOC. Mensaje CAN
 - Este mensaje envía el SOC del pack como un valor entre 0-255 (1 byte) correspondiente a 0-100%.
   - ID = 0x47 (DEC=71) (SOC_MSG_ID)
   - DLC = 1 byte
   - Valor = data[0] * 100/255
 
-### envíar el valor del SOH. Mensaje CAN
+### Enviar el valor del SOH. Mensaje CAN
 - Este mensaje envía el SOH del pack como un valor entre 0-255 (1 byte) correspondiente a 0-100%.
   - ID = 0x48 (DEC=72) (SOH_MSG_ID)
   - DLC = 1 byte
