@@ -53,16 +53,11 @@ Para realizar la comunicación con el CAN debe Enviarse un mensaje por serial, c
 
 ### Forzar el balanceo de las celdas 1 a la 8 (C0-C7)
 - Activa el balanceo de las celdas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C0* y *MSB=C7*), durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe Enviarse el ID='G' seguido de 1 byte indicando las celdas a balancear:
-  - "G00111001\n" = Balancear las celdas 1,4,5 y 6
+  - "G57\n" = Balancear las celdas 1,4,5 y 6 (0b00111001)
 
 ### Forzar el balanceo de las celdas 9 a la 12 (C8-C11)
 - Activa el balanceo de las celdas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*), durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe Enviarse el ID='H' seguido de 1 byte indicando las celdas a balancear:
-  - "G00001001\n" = Balancear las celdas 9 y 12 (C8 y 11).
-
-### Pedir los valores de configuracion de la EEPROM del BMS.
-- Pide todos los parámetros de configuración que presenta almacenados el BMS en su EEPROM. Debe Enviarse el ID='Z' seguido de un 1:
-  - "Z1\n" = Pedir todos los parámetros de configuración.
-- Se espera recibir un mensaje de 8 bytes, con 1 byte por valor de configuración en el siguiente orden (desde el LSB al MSB): VUV, VOV, DCTO, NCELL, NNTC, DIF_CELL_V, CELL_BALANCING_C0-C7, CELL_BALANCING_C8-C11.
+  - "H9\n" = Balancear las celdas 9 y 12 (C8 y 11) )(0b00001001).
 
 ### Activar o desactivar el balanceo automático
 - Activa el balanceo de las celdas de forma automática durante la carga de la batería, la descarga o ambas, durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe Enviarse el ID='J' seguido de 2 bits que indican el tipo de balanceo:
@@ -70,6 +65,12 @@ Para realizar la comunicación con el CAN debe Enviarse un mensaje por serial, c
   - "J1\n" = Balanceo exclusivamente durante la carga (0b01)
   - "J2\n" = Balanceo exclusivamente durante la descarga (0b10)
   - "J3\n  = Balanceo durante la carga y la descarga(0b11)
+
+### Pedir los valores de configuracion de la EEPROM del BMS.
+- Pide todos los parámetros de configuración que presenta almacenados el BMS en su EEPROM. Debe Enviarse el ID='Z' seguido de un 1:
+  - "Z1\n" = Pedir todos los parámetros de configuración.
+- Se espera recibir un mensaje de 8 bytes por CAN, con 1 byte por valor de configuración en el siguiente orden (desde el LSB al MSB): VUV, VOV, DCTO, NCELL, NNTC, DIF_CELL_V, CELL_BALANCING_C0-C7, CELL_BALANCING_C8-C11.
+
 
 # Mensajes a recibir por puerto Serial
 Por Puerto Serie se reciben en el PC los valores configurados con los comandos anteriores, una vez son pedidos al BMS, así como los parámetros medidos por el mismo. Los indicadores de los mensajes recibidos se corresponden con los indicadores de los mensajes envíados por serial.
@@ -150,18 +151,18 @@ Por Puerto Serie se reciben en el PC los valores configurados con los comandos a
   - "P08225\n" = Temperatura de la celda 8 es de (225 - 5)*0.3 = 66 ºC
 
 ### Valor de la corriente medida en la batería
-- Se obtiene el valor de la corriente a partir de la reconstrucción del entero partiendo de 4 bytes de datos. Se recibe el valor de la corriente en mA y dividido en 4 bytes, que se reconstruyen como se muestra a continuación:
+- Se obtiene el valor de la corriente a partir de la reconstrucción del entero partiendo de 4 bytes de datos. Se recibe el valor de la corriente en mA y separado en 4 bytes, que se reconstruyen como se muestra a continuación:
   - current = ((can_msg_in.data[0]) | (can_msg_in.data[1] << 8) | (can_msg_in.data[2] << 16) | (can_msg_in.data[3] << 24))
 - El ID que se envía por puerto serie es ID='Q' seguido del valor de corriente (mA) en decimal.
   - "Q-16452\n" = Corriente de -16.542 Amperios (descarga)
 
 ### Valor de SOC del Pack
-- Se obtiene el valor del estado de carga como un byte que representa el porcentaje entre 0 y 100. Se recibe por serial en el PC el ID='T' seguido de un valor entre 0 y 255. Ese valor debe multiplicarse por 0,392:
- - "T220\n" = el SOC es de 220 * 0,392 = 86,24 %
+- Se obtiene el valor del estado de carga como dos byte que representa el porcentaje entre 0 y 100 multiplicado por 100. Se recibe por serial en el PC el ID='T' seguido del porcentaje multiplicado por 100. Ese valor debe dividirse entre 100:
+ - "T9980\n" = el SOC es de 99,80 %
 
 ### Valor de SOH del Pack
-- Se obtiene el valor del estado de salud como un byte que representa el porcentaje entre 0 y 100. Se recibe por serial en el PC el ID='U' seguido de un valor entre 0 y 255. Ese valor debe multiplicarse por 0,392:
-  - "U220\n" = el SOH es de 220 * 0,392 = 86,24 %
+- Se obtiene el valor del estado de salud como dos byte que representa el porcentaje entre 0 y 100. Se recibe por serial en el PC el ID='U' seguido de un valor entre 0 y 100 multiplicado por 100. Ese valor debe dividirse entre 100:
+  - "U9980\n" = el SOH es de 99.80 %
 
 
 
@@ -190,7 +191,23 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
 - Este mensaje configura el tiempo que dura la descarga de la celda durante el balanceo.
   - El ID en hexadecimal del mensaje CAN es ID=0x04.
   - DLC = 1 byte (DCTO_MSG_ID)
-  - Valor = El número indica un tiempo en segundos según la tabla DCTO antes descrita.
+  - Valor = El número indica un tiempo en minutos:
+    - "DCTO0\n" = Se desactiva el TimeOut.
+    - "DCTO1\n" = Se produce el balanceo de la Celda Cx durante 0.5 minutos
+    - "DCTO2\n" = Se produce el balanceo de la Celda Cx durante 1 minuto
+    - "DCTO3\n" = Se produce el balanceo de la Celda Cx durante 2 minutos
+    - "DCTO4\n" = Se produce el balanceo de la Celda Cx durante 3 minutos
+    - "DCTO5\n" = Se produce el balanceo de la Celda Cx durante 4 minutos
+    - "DCTO6\n" = Se produce el balanceo de la Celda Cx durante 5 minutos
+    - "DCTO7\n" = Se produce el balanceo de la Celda Cx durante 10 minutos
+    - "DCTO8\n" = Se produce el balanceo de la Celda Cx durante 15 minutos
+    - "DCTO9\n" = Se produce el balanceo de la Celda Cx durante 20 minutos
+    - "DCTO10\n" = Se produce el balanceo de la Celda Cx durante 30 minutos
+    - "DCTO11\n" = Se produce el balanceo de la Celda Cx durante 40 minutos
+    - "DCTO12\n" = Se produce el balanceo de la Celda Cx durante 60 minutos
+    - "DCTO13\n" = Se produce el balanceo de la Celda Cx durante 75 minutos
+    - "DCTO14\n" = Se produce el balanceo de la Celda Cx durante 90 minutos
+    - "DCTO15\n" = Se produce el balanceo de la Celda Cx durante 120 minutos
 
 ### Configurar valor N_CELL. Mensaje CAN
 - Este mensaje configura el número de celdas conectadas en serie.
@@ -222,6 +239,17 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
   - DLC = 1 byte
   - Valor = Bits a 1 son las celdas a balancear con *LSB=C8* y *bit3=C11*
   - ID = 0x09  DLC = 1 data[0] = 0b00001001 -> Balancear celdas 9 (C8) y 12 (C11)
+
+### Configurar el tipo de Balanceo a realizar. Mensaje CAN
+- Este mensaje configura si el balanceo de las celdas se realiza durante la carga, la descarga, en ambas o ninguna.
+Se envía un mnesaje CAN de 1 byte con los siguientes datos:
+  - El ID en hexadecimal es ID = 0x0E (TYPE_BALANCING_MSG_ID)
+  - DLC = 1 byte
+  - Valor = Bit 0 representa el balanceo en la carga. Bit 1 representa el balanceo en la descarga
+    - ID = 0x0E DLC = 1 data[0] = 0b00000001 -> Balancear solo en la carga
+    - ID = 0x0E DLC = 1 data[0] = 0b00000010 -> Balancear solo en la descarga
+    - ID = 0x0E DLC = 1 data[0] = 0b00000011 -> Balancear en carga y descarga
+    - ID = 0x0E DLC = 1 data[0] = 0b00000000 -> No balancear en ningún caso
 
 ### Configurar máxima diferencia entre celdas en mV. Mensaje CAN
 - Este mensaje CAN configura la máxima diferencia de tensión en mV admisible entre las diferentes celdas.
@@ -301,13 +329,26 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
   - NTC16 a NTC31 = data[0] a data[7]. Debe restarse a cada entero 5 y multiplicar por 0,3
 
 ### Enviar el valor del SOC. Mensaje CAN
-- Este mensaje envía el SOC del pack como un valor entre 0-255 (1 byte) correspondiente a 0-100%.
+- Este mensaje envía el SOC del pack como un valor entre 0-10000 (2 byte) correspondiente a 0-100% multiplicado por 100.
   - ID = 0x47 (DEC=71) (SOC_MSG_ID)
-  - DLC = 1 byte
-  - Valor = data[0] * 100/255
+  - DLC = 2 byte
+  - Mensaje CAN:
+    - data[0] = round(SOC * 100) >> 8
+    - data[1] = round(SOC *100) & 0b0000000011111111
+  - Valor = (uint16_t(data[1] << 8) | data[0])/100.0
 
 ### Enviar el valor del SOH. Mensaje CAN
-- Este mensaje envía el SOH del pack como un valor entre 0-255 (1 byte) correspondiente a 0-100%.
+- Este mensaje envía el SOC del pack como un valor entre 0-10000 (2 byte) correspondiente a 0-100% multiplicado por 100.
   - ID = 0x48 (DEC=72) (SOH_MSG_ID)
-  - DLC = 1 byte
-  - Valor = data[0] * 100/255
+  - DLC = 2 byte
+  - Mensaje CAN:
+    - data[0] = round(SOH * 100) >> 8
+    - data[1] = round(SOH *100) & 0b0000000011111111
+  - Valor = (uint16_t(data[1] << 8) | data[0])/100.0
+
+### Enviar la corriente que circula por la batería. Mensaje CAN
+- Este mensaje envía la corriente medida por el BMS (siendo positiva para la carga de la batería) y negativa para la descarga. Se envía el valor como un entero de 4 bytes
+  con el valor de corriente en mA. Por ejemplo, la lectura de corriente -23.568 A, se convierto al entero (de 32 bits) -23568 y se envían sus 4 bytes.
+  - ID = 0x49 (DEC = 73) (CURRENT_MSG_ID)
+  - DLC = 4 bytes
+  - Valor = (data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]) (mA)
