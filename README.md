@@ -64,7 +64,12 @@ Para realizar la comunicación con el CAN debe Enviarse un mensaje por serial, c
   - "Z1\n" = Pedir todos los parámetros de configuración.
 - Se espera recibir un mensaje de 8 bytes, con 1 byte por valor de configuración en el siguiente orden (desde el LSB al MSB): VUV, VOV, DCTO, NCELL, NNTC, DIF_CELL_V, CELL_BALANCING_C0-C7, CELL_BALANCING_C8-C11.
 
-
+### Activar o desactivar el balanceo automático
+- Activa el balanceo de las celdas de forma automática durante la carga de la batería, la descarga o ambas, durante el tiempo indicado mediante el mensaje de *configurar DCTO*. Debe Enviarse el ID='J' seguido de 2 bits que indican el tipo de balanceo:
+  - "J0\n" = Balanceo desactivado (0b00)
+  - "J1\n" = Balanceo exclusivamente durante la carga (0b01)
+  - "J2\n" = Balanceo exclusivamente durante la descarga (0b10)
+  - "J3\n  = Balanceo durante la carga y la descarga(0b11)
 
 # Mensajes a recibir por puerto Serial
 Por Puerto Serie se reciben en el PC los valores configurados con los comandos anteriores, una vez son pedidos al BMS, así como los parámetros medidos por el mismo. Los indicadores de los mensajes recibidos se corresponden con los indicadores de los mensajes envíados por serial.
@@ -113,13 +118,20 @@ Por Puerto Serie se reciben en el PC los valores configurados con los comandos a
 - Se obtiene la diferencia de tensión máxima admisible entre celdas. Se recibe el ID='I' seguido de un número entre 0 y 255 que indica los mV máximos de diferencia almacenados en el BMS:
   - "I220\n" = Máxima diferencia admisible entre celdas de 220 mV
 
+### Activar o desactivar el balanceo automático
+- Se obtiene el tipo de balanceo que se realiza a las celdas. Se recibe el ID='J' seguido de 2 bits que indican el tipo de balanceo:
+  - "J0\n" = Balanceo desactivado
+  - "J1\n" = Balanceo exclusivamente durante la carga
+  - "J2\n" = Balanceo exclusivamente durante la descarga
+  - "J3\n  = Balanceo durante la carga y la descarga
+
 ### Obtener celdas entre la celda 1 y la celda 8 (C0-C7) balanceandose
-- Se obtiene las celdas que se están balancenado como aquellas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C0* y *MSB=C7*). Se recibe el ID='G' seguido de 1 byte indicando las celdas que se están balanceando:
-  - "G00111001\n" = Las celdas 1,4,5 y 6 se están balanceando.
+- Se obtiene las celdas que se están balanceando en un numero decimal cuyas posiciones en el byte estén a 1 para las celdas que se están balanceando (siendo el *LSB= C0* y *MSB=C7*). Se recibe el ID='G' seguido de 1 byte indicando las celdas que se están balanceando:
+  - "G57\n" = Las celdas 1,4,5 y 6 (0b00111001) se están balanceando.
 
 ### Obtener celdas entre la celda 9 y la celda 12 (C8-C11) balanceandose
-- Se obtiene las celdas que se están balancenado como aquellas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*). Se recibe el ID='H' seguido de 1 byte indicando las celdas que se están balanceando:
-  - "H00001001\n" =Las celdas 9 y 12 (C8 y 11) están balanceandose.
+- Se obtiene las celdas que se están balanceando como aquellas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*). Se recibe el ID='H' seguido de 1 byte decimal indicando las celdas que se están balanceando:
+  - "H9\n" =Las celdas 9 y 12 (0b00001001) (C8 y 11) están balanceandose.
 
 ### Voltaje de las celdas 1 a la 4 (C0-C3)
 - Se obtiene la tensión de las celdas C0-C3 mediante mensajes seriales con ID='M' seguido del número de la celda y un valor entre 0 y 65536 que se debe multiplicar por 100 uV para obtener la tensión de la celda.
