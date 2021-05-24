@@ -13,6 +13,9 @@
 #define TSLEEP_addr 7
 #define MAX_DIFF_CELL_addr 8
 #define BALANCING_TYPE_addr 9
+#define NCELL_PARALLEL_addr 10
+#define CURRENT_OFFSET_addr 11
+
 
 //ID de los mensajes CAN en decimal
 #define BAT_MSG1_ID 0x40
@@ -35,11 +38,14 @@
 #define N_NTC_MSG_ID 0x06
 #define TSLEEP_MSG_ID 0x07
 #define BAL1TO8_MSG_ID 0x08
-#define BAL9TO12_MSG_ID 0x09 
-#define ASK_CONFIG_MSG_ID 0x0B 
-#define ANSWER_CONFIG_MSG_ID 0x0C 
-#define MAX_DIFF_CELL_MSG_ID 0x0D 
+#define BAL9TO12_MSG_ID 0x09
+#define ASK_CONFIG_MSG_ID 0x0B
+#define ANSWER_CONFIG_MSG_ID 0x0C
+#define ANSWER_CONFIG_MSG_2_ID 0x11
+#define MAX_DIFF_CELL_MSG_ID 0x0D
 #define TYPE_BALANCING_MSG_ID 0x0E
+#define NCELL_PARALLEL_MSG_ID 0x0F
+#define CURRENT_OFFSET_MSG_ID 0x10
 
 //ID de los mensajes Seriales
 #define VUV_SERIAL_ID 'A'
@@ -52,7 +58,8 @@
 #define BAL9_12_SERIAL_ID 'H'
 #define MAX_DIFF_CELL_SERIAL_ID 'I'
 #define TYPE_BALANCING_SERIAL_ID 'J'
-#define ASK_CONFIG_SERIAL_ID 'Z'
+#define NCELLS_PARALLEL_SERIAL_ID 'K'
+#define CURRENT_OFFSET_SERIAL_ID 'L'
 #define BAT_MSG1_SERIAL_ID 'M'
 #define BAT_MSG2_SERIAL_ID 'N'
 #define BAT_MSG3_SERIAL_ID 'O'
@@ -60,6 +67,7 @@
 #define CURRENT_MSG_SERIAL_ID 'Q'
 #define SOC_MSG_SERIAL_ID 'T'
 #define SOH_MSG_SERIAL_ID 'U'
+#define ASK_CONFIG_SERIAL_ID 'Z'
 
 
 #define PIN_SYNC_MUX 8 //Pin del CS del ADG731  (D8 que es el PB0 en ATMega 328P)

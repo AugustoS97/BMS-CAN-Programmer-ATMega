@@ -66,10 +66,23 @@ Para realizar la comunicación con el CAN debe Enviarse un mensaje por serial, c
   - "J2\n" = Balanceo exclusivamente durante la descarga (0b10)
   - "J3\n  = Balanceo durante la carga y la descarga(0b11)
 
+### Numero de celdas conectadas en paralelo
+- Configura el número de celdas conectadas en paralelo en el BMS. Debe envisarse el ID='K' seguido del valor (número de celdas):
+  - "K10\n" = 10 celdas conectadas en paralelo
+
+### Offset del sensor de Corriente
+- Configura el offset a aplicar en la medida de corriente. Debe enviarse el ID='L' seguido del valor (positivo o negativo) entre -220 y 220 mA:
+  - "L-110\n" = Offset de -110 mA en la medida de corriente
+
+### Tiempo que duerme por ciclo
+- Configura el tiempo de reposo en cada ciclo del BMS. Debe enviarse el ID='F' seguido de un valor entre 0 y 255 que es el tiempo en ms que duerme el BMS.
+  - "F10\n" = Tiempo de reposo de 10 ms
+
 ### Pedir los valores de configuracion de la EEPROM del BMS.
 - Pide todos los parámetros de configuración que presenta almacenados el BMS en su EEPROM. Debe Enviarse el ID='Z' seguido de un 1:
   - "Z1\n" = Pedir todos los parámetros de configuración.
-- Se espera recibir un mensaje de 8 bytes por CAN, con 1 byte por valor de configuración en el siguiente orden (desde el LSB al MSB): VUV, VOV, DCTO, NCELL, NNTC, DIF_CELL_V, CELL_BALANCING_C0-C7, CELL_BALANCING_C8-C11.
+- Se espera recibir dos mensaje, uno de 8 bytes y otro de 5 por CAN, con 1 byte por valor de configuración en el siguiente orden (desde el LSB al MSB): VUV, VOV, DCTO, NCELL, NNTC, DIF_CELL_V, CELL_BALANCING_C0-C7, CELL_BALANCING_C8-C11 para el primer mensaje. El segundo mensaje presenta (desde LSB a MSB): NCELL_PARALLEL, CURRENT_OFFSET, CURRENT_OFFSET_SIGN, T_SLEEP, TYPE_BALANCING
+
 
 
 # Mensajes a recibir por puerto Serial
@@ -115,6 +128,18 @@ Por Puerto Serie se reciben en el PC los valores configurados con los comandos a
 - Se obtiene el número de NTC conectadas al BMS, comenzando por la NTC0. Se recibe el ID='E' seguido de un numero entre 1 y 32 para indicar el número de sensores:
   - "E12\n" = Configurar 12 sensores NTC
 
+### Tiempo que duerme por ciclo
+- Se obtiene el tiempo de reposo en cada ciclo del BMS. Se recibe el ID='F' seguido de un valor entre 0 y 255 que es el tiempo en ms que duerme el BMS.
+  - "F10\n" = Tiempo de reposo de 10 ms
+
+### Obtener celdas entre la celda 1 y la celda 8 (C0-C7) balanceandose
+- Se obtiene las celdas que se están balanceando en un numero decimal cuyas posiciones en el byte estén a 1 para las celdas que se están balanceando (siendo el *LSB= C0* y *MSB=C7*). Se recibe el ID='G' seguido de 1 byte indicando las celdas que se están balanceando:
+  - "G57\n" = Las celdas 1,4,5 y 6 (0b00111001) se están balanceando.
+
+### Obtener celdas entre la celda 9 y la celda 12 (C8-C11) balanceandose
+- Se obtiene las celdas que se están balanceando como aquellas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*). Se recibe el ID='H' seguido de 1 byte decimal indicando las celdas que se están balanceando:
+  - "H9\n" =Las celdas 9 y 12 (0b00001001) (C8 y 11) están balanceandose.
+
 ### Obtener la máxima diferencia de voltaje entre celdas
 - Se obtiene la diferencia de tensión máxima admisible entre celdas. Se recibe el ID='I' seguido de un número entre 0 y 255 que indica los mV máximos de diferencia almacenados en el BMS:
   - "I220\n" = Máxima diferencia admisible entre celdas de 220 mV
@@ -126,13 +151,13 @@ Por Puerto Serie se reciben en el PC los valores configurados con los comandos a
   - "J2\n" = Balanceo exclusivamente durante la descarga
   - "J3\n  = Balanceo durante la carga y la descarga
 
-### Obtener celdas entre la celda 1 y la celda 8 (C0-C7) balanceandose
-- Se obtiene las celdas que se están balanceando en un numero decimal cuyas posiciones en el byte estén a 1 para las celdas que se están balanceando (siendo el *LSB= C0* y *MSB=C7*). Se recibe el ID='G' seguido de 1 byte indicando las celdas que se están balanceando:
-  - "G57\n" = Las celdas 1,4,5 y 6 (0b00111001) se están balanceando.
+### Obtener numero de celdas conectadas en paralelo
+- Se obtiene el número de celdas conectadas en paralelo en el BMS. Se recibe el ID='K' seguido del valor (número de celdas):
+  - "K10\n" = 10 celdas conectadas en paralelo
 
-### Obtener celdas entre la celda 9 y la celda 12 (C8-C11) balanceandose
-- Se obtiene las celdas que se están balanceando como aquellas cuyas posiciones en el byte estén a 1 (siendo el *LSB= C8* y *bit4=C11*). Se recibe el ID='H' seguido de 1 byte decimal indicando las celdas que se están balanceando:
-  - "H9\n" =Las celdas 9 y 12 (0b00001001) (C8 y 11) están balanceandose.
+### Obtener Offset del sensor de Corriente
+- Se obtiene el offset a aplicar en la medida de corriente. Se recibe el ID='L' seguido del valor (positivo o negativo) entre -220 y 220 mA:
+  - "L-110\n" = Offset de -110 mA en la medida de corriente
 
 ### Voltaje de las celdas 1 a la 4 (C0-C3)
 - Se obtiene la tensión de las celdas C0-C3 mediante mensajes seriales con ID='M' seguido del número de la celda y un valor entre 0 y 65536 que se debe multiplicar por 100 uV para obtener la tensión de la celda.
@@ -163,7 +188,6 @@ Por Puerto Serie se reciben en el PC los valores configurados con los comandos a
 ### Valor de SOH del Pack
 - Se obtiene el valor del estado de salud como dos byte que representa el porcentaje entre 0 y 100. Se recibe por serial en el PC el ID='U' seguido de un valor entre 0 y 100 multiplicado por 100. Ese valor debe dividirse entre 100:
   - "U9980\n" = el SOH es de 99.80 %
-
 
 
 # Mensajes CAN de Configuracion
@@ -221,6 +245,13 @@ A continuación se indican los mensajes CAN que son intercambiados entre el nodo
   - DLC = 1 byte
   - Valor = El byte se convierte a un entero de 8 bits e indica el número de termistores entre 1 y 32.  
 
+### Configurar valor N_CELL_PARALLEL. Mensaje CAN
+- Este mensaje configura el número de celdas conectadas en paralelo en el BMS.
+  - El ID en hexadecimal del mensaje CAN es ID=0x0F. (NCELL_PARALLEL_MSG_ID)
+  - DLC = 1 byte
+  - Valor = El byte se convierte a un entero de 8 bits e indica el número de celdas entre 1 y 99.  
+  - Se almacena el valor en la dirección de memoria 0x0A de la EEPROM (NCELL_PARALLEL_addr)
+
 ### Configurar tiempo que duerme por ciclo el BMS (T_SLEEP). Mensaje CAN
 - Este mensaje configura el tiempo en múltiplos de 100 ms que duerme el BMS tras realizar cada ciclo de operaciones.
   - El ID en hexadecimal del mensaje CAN es ID=0x07. (TSLEEP_MSG_ID)
@@ -257,6 +288,14 @@ Se envía un mnesaje CAN de 1 byte con los siguientes datos:
   - DLC = 1 byte
   - Valor = data[0] * 1mV
 
+### Configurar offset del sensor de corriente (en mA). Mensaje CAN
+- Este mensaje CAN configura el offset a aplicar en la medida del sensor de corriente. Permite un offset entre -220 y +220 mA.
+  - El ID en hexadecimal es ID=0x10 (CURRENT_OFFSET_MSG_ID)
+  - DLC = 2 byte
+  - Valor = data[0]
+  - Signo del offset: Si data[1] == 1 -> Signo negativo. Si data[1] == 0 ->Signo positivo
+  - Se almacena el valor en la dirección de memoria 0x0B(11) (el valor) y 0x0C(12) (el signo) de la EEPROM (CURRENT_OFFSET_addr)
+
 ### Pedir las configuraciones de los BMS. Mensaje CAN
 - Este mensaje CAN pide todas las configuraciones almacenadas en la EEPROM del BMS. El ID de este mensaje es ID = 0x0B. El BMS responde con un mensaje con ID = 0x0C y 8 bytes con los datos.
   - El ID en hexadecimal es ID=0x0B (ASK_CONFIG_MSG_ID)
@@ -264,7 +303,7 @@ Se envía un mnesaje CAN de 1 byte con los siguientes datos:
   - Valor = 255
 
 ### Enviar todas las configuraciones almacenadas en el BMS. Mensaje CAN
-- Este mensaje CAN devuelve los diferentes parámetros de configuración en 8 bytes. Su ID es ID = 0x0C.
+- Este primer mensaje CAN devuelve los diferentes parámetros de configuración en 8 bytes. Su ID es ID = 0x0C.
   - El ID es ID=0x0C (ANSWER_CONFIG_MSG_ID)
   - DLC = 8 bytes
   - Valores:
@@ -276,6 +315,15 @@ Se envía un mnesaje CAN de 1 byte con los siguientes datos:
     - data[5] = MAX_DIFF_CELL_mV
     - data[6] = CELL_BALANCING_C0_C7
     - data[7] = CELL_BALANCING_C8_C11
+- Este segundo mensaje CAN devuelve los parámetros de configuración restantes en 4 bytes. Su ID es ID = 0x11.
+  - El ID es ID=0x11 (ANSWER_CONFIG_MSG_2_ID)
+  - DLC = 4 bytes
+  - Valores:
+    - data[0] = NCELL_PARALLEL
+    - data[1] = CURRENT_OFFSET
+    - data[2] = CURRENT_OFFSET_SIGN (Signo para saber si el offset es positivo o negativo)
+    - data[3] = T_SLEEP
+
 
 ### Enviar los valores en Voltios de las celdas 1 a la 4. Mensaje CAN
 - Este mensaje envía el voltaje de las celdas C0-C3 cada una de ellas como 2 bytes. El valor obtenido debe multiplicarse por 100 uV para tener el Voltaje de la celda.

@@ -129,7 +129,33 @@ void loop() {
       can_msg_out.data[0] = uint8_t(config_value);
       mcp2515.sendMessage(&can_msg_out);
       break;
+    case NCELLS_PARALLEL_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de configuración del número de celdas en paralelo:");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = NCELL_PARALLEL_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
 
+    case CURRENT_OFFSET_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de configuración del offset del sensor corriente:");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = CURRENT_OFFSET_MSG_ID;
+      can_msg_out.can_dlc = 2;
+      can_msg_out.data[0] = uint8_t(abs(config_value));
+      if (config_value <= 0 ){
+        can_msg_out.data[1] = 0b00000001; //si el offset es negativo se envia un 1 en el 2º byte
+      }
+      else{
+        can_msg_out.data[1] = 0b00000000; //Si el offset es positivo se envia un 0 en el 2º byte
+      }
+      mcp2515.sendMessage(&can_msg_out);
+      break;
     case ASK_CONFIG_SERIAL_ID: //Para pedir todos los valores de config. Escribir Z255
       #ifdef SERIAL_DEBUG
         Serial.print("Mensaje de pedir Config Actual. Valor: ");
@@ -179,6 +205,23 @@ void can_msg_rcv(){
       Serial.print(BAL9_12_SERIAL_ID);
       Serial.println(aux, DEC); //Devuelve las celdas entre la 9 y la 12 que se estan balanceando (4 primeros bits)
       break;}
+      case ANSWER_CONFIG_MSG_2_ID:{ //Recibir 2 mensaje de configuraciones del BMS
+           uint8_t aux = can_msg_in.data[0];
+           Serial.print(NCELLS_PARALLEL_SERIAL_ID);
+           Serial.println(aux, DEC); //Envia por serie el valor de numero de celdas en paralelo
+           aux = can_msg_in.data[1];
+           Serial.print(CURRENT_OFFSET_SERIAL_ID);
+           if (can_msg_in.data[2] == 0b00000001){ //si se recibe en el byte 2 (byte del signo del offset) un 1 es que es negativo
+             Serial.print('-');
+           }
+           Serial.println (aux, DEC); //Envia por serie el valor del tiempo de sleep por ciclo
+           aux = can_msg_in.data[3];
+           Serial.print(TSLEEP_SERIAL_ID);
+           Serial.println(aux, DEC); //Envia por serie el valor de tsleep
+           aux = can_msg_in.data[4];
+           Serial.print(TYPE_BALANCING_SERIAL_ID);
+           Serial.println(aux, DEC); //Envia por serie el tipo de balanceo
+           break;}
     case BAT_MSG1_ID: //Se recibe el mensaje CAN de las celdas 1 a 4
       for (int i=0; i<4 ; i++){
         Serial.print(BAT_MSG1_SERIAL_ID);
