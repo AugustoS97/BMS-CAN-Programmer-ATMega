@@ -205,23 +205,23 @@ void can_msg_rcv(){
       Serial.print(BAL9_12_SERIAL_ID);
       Serial.println(aux, DEC); //Devuelve las celdas entre la 9 y la 12 que se estan balanceando (4 primeros bits)
       break;}
-      case ANSWER_CONFIG_MSG_2_ID:{ //Recibir 2 mensaje de configuraciones del BMS
-           uint8_t aux = can_msg_in.data[0];
-           Serial.print(NCELLS_PARALLEL_SERIAL_ID);
-           Serial.println(aux, DEC); //Envia por serie el valor de numero de celdas en paralelo
-           aux = can_msg_in.data[1];
-           Serial.print(CURRENT_OFFSET_SERIAL_ID);
-           if (can_msg_in.data[2] == 0b00000001){ //si se recibe en el byte 2 (byte del signo del offset) un 1 es que es negativo
-             Serial.print('-');
-           }
-           Serial.println (aux, DEC); //Envia por serie el valor del tiempo de sleep por ciclo
-           aux = can_msg_in.data[3];
-           Serial.print(TSLEEP_SERIAL_ID);
-           Serial.println(aux, DEC); //Envia por serie el valor de tsleep
-           aux = can_msg_in.data[4];
-           Serial.print(TYPE_BALANCING_SERIAL_ID);
-           Serial.println(aux, DEC); //Envia por serie el tipo de balanceo
-           break;}
+    case ANSWER_CONFIG_MSG_2_ID:{ //Recibir 2 mensaje de configuraciones del BMS
+      uint8_t aux = can_msg_in.data[0];
+      Serial.print(NCELLS_PARALLEL_SERIAL_ID);
+      Serial.println(aux, DEC); //Envia por serie el valor de numero de celdas en paralelo
+      aux = can_msg_in.data[1];
+      Serial.print(CURRENT_OFFSET_SERIAL_ID);
+      if (can_msg_in.data[2] == 0b00000001){ //si se recibe en el byte 2 (byte del signo del offset) un 1 es que es negativo
+        Serial.print('-');
+      }
+      Serial.println (aux, DEC); //Envia por serie el valor del tiempo de sleep por ciclo
+      aux = can_msg_in.data[3];
+      Serial.print(TSLEEP_SERIAL_ID);
+      Serial.println(aux, DEC); //Envia por serie el valor de tsleep
+      aux = can_msg_in.data[4];
+      Serial.print(TYPE_BALANCING_SERIAL_ID);
+      Serial.println(aux, DEC); //Envia por serie el tipo de balanceo
+      break;}
     case BAT_MSG1_ID: //Se recibe el mensaje CAN de las celdas 1 a 4
       for (int i=0; i<4 ; i++){
         Serial.print(BAT_MSG1_SERIAL_ID);
