@@ -5,174 +5,12 @@
 
 String inReadString = "";
 
-
 MCP2515 mcp2515(10);
 
 struct can_frame can_msg_in;
 struct can_frame can_msg_out;
 
 
-void setup() {
-  attachInterrupt(0, can_msg_rcv, FALLING); //Se configura interrupcion al recibir mensaje CAN
-  Serial.begin(115200);
-  mcp2515.reset();
-  mcp2515.setBitrate(CAN_125KBPS, MCP_8MHZ);
-  mcp2515.setNormalMode();
-}
-
-void loop() {
-  inReadString = serial_event(); //Se lee puerto serial y se almacena lo leido
-  char ID_in = char(inReadString[0]); //Se obtiene el ID que es el byte 0 del String leido por serial
-  uint8_t config_value = uint8_t(get_data(inReadString)); //Se obtiene el valor del parametro y se  almacena en 1 byte
-  switch (ID_in){
-    case VUV_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de VUV. Valor: ");
-        Serial.print(config_value, BIN);
-        Serial.print(" = ");
-        Serial.println(config_value*0.02);
-      #endif
-      can_msg_out.can_id = VUV_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case VOV_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de VOV. Valor: ");
-        Serial.print(config_value, BIN);
-        Serial.print(" = ");
-        Serial.println(config_value*0.02);
-      #endif
-      can_msg_out.can_id = VOV_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case DCTO_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de DCTO. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = DCTO_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case NCELLS_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de N_CELDAS. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = NCELL_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case NTEMPS_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de N SENSORES Temp. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = N_NTC_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case TSLEEP_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de TSLEEP. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = TSLEEP_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value); //tiempo que duerme el BMS en ms
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case BAL1_8_SERIAL_ID:
-    #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de Balanceo 1-8. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = BAL1TO8_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case BAL9_12_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de Balanceo 9-12. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = BAL9TO12_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case MAX_DIFF_CELL_SERIAL_ID:
-    #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de Máxima V de diferencia entre celdas (mV) . Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = MAX_DIFF_CELL_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case TYPE_BALANCING_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de configuración del tipo de balanceo:");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = TYPE_BALANCING_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case NCELLS_PARALLEL_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de configuración del número de celdas en paralelo:");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = NCELL_PARALLEL_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-
-    case CURRENT_OFFSET_SERIAL_ID:
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de configuración del offset del sensor corriente:");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = CURRENT_OFFSET_MSG_ID;
-      can_msg_out.can_dlc = 2;
-      can_msg_out.data[0] = uint8_t(abs(config_value));
-      if (config_value <= 0 ){
-        can_msg_out.data[1] = 0b00000001; //si el offset es negativo se envia un 1 en el 2º byte
-      }
-      else{
-        can_msg_out.data[1] = 0b00000000; //Si el offset es positivo se envia un 0 en el 2º byte
-      }
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    case ASK_CONFIG_SERIAL_ID: //Para pedir todos los valores de config. Escribir Z255
-      #ifdef SERIAL_DEBUG
-        Serial.print("Mensaje de pedir Config Actual. Valor: ");
-        Serial.println(config_value, BIN);
-      #endif
-      can_msg_out.can_id = ASK_CONFIG_MSG_ID;
-      can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value);
-      mcp2515.sendMessage(&can_msg_out);
-      break;
-    default:
-      break;
-  } //Fin del Switch
-
-}
-
-//FUNCIÓN PARA UNA INTERRUPCIÓN POR UN MENSAJE CAN
 void can_msg_rcv(){
   noInterrupts();
   if(mcp2515.readMessage(&can_msg_in) == MCP2515::ERROR_OK){
@@ -209,19 +47,17 @@ void can_msg_rcv(){
       uint8_t aux = can_msg_in.data[0];
       Serial.print(NCELLS_PARALLEL_SERIAL_ID);
       Serial.println(aux, DEC); //Envia por serie el valor de numero de celdas en paralelo
-      aux = can_msg_in.data[1];
+      int16_t current_offset = int16_t(int16_t(uint16_t((can_msg_in.data[1] << 8)) | uint16_t(can_msg_in.data[2]) )- 32767); //Se reconstruye el offset de corriente desde 2 bytes
       Serial.print(CURRENT_OFFSET_SERIAL_ID);
-      if (can_msg_in.data[2] == 0b00000001){ //si se recibe en el byte 2 (byte del signo del offset) un 1 es que es negativo
-        Serial.print('-');
-      }
-      Serial.println (aux, DEC); //Envia por serie el valor del tiempo de sleep por ciclo
+      Serial.println(current_offset, DEC); //Envia por serie el offset
       aux = can_msg_in.data[3];
       Serial.print(TSLEEP_SERIAL_ID);
-      Serial.println(aux, DEC); //Envia por serie el valor de tsleep
+      Serial.println(aux, DEC); //Envia por serie el valor del factor que multiplica a 15 ms al tsleep
       aux = can_msg_in.data[4];
       Serial.print(TYPE_BALANCING_SERIAL_ID);
       Serial.println(aux, DEC); //Envia por serie el tipo de balanceo
       break;}
+      
     case BAT_MSG1_ID: //Se recibe el mensaje CAN de las celdas 1 a 4
       for (int i=0; i<4 ; i++){
         Serial.print(BAT_MSG1_SERIAL_ID);
@@ -291,8 +127,8 @@ void can_msg_rcv(){
     }
     case SOC_MSG_ID:{ // SOC del pack
       Serial.print(SOC_MSG_SERIAL_ID);
-      uint16_t aux = (uint16_t(can_msg_in.data[1]) << 8) | can_msg_in.data[0];
-      Serial.println(aux, DEC);
+      uint16_t SOC = (uint16_t(can_msg_in.data[1]) << 8) | can_msg_in.data[0];
+      Serial.println(SOC, DEC);
       break;}
     case SOH_MSG_ID:{ //SOH del pack
       Serial.print(SOH_MSG_SERIAL_ID);
@@ -304,3 +140,161 @@ void can_msg_rcv(){
   }
   interrupts();
 }
+void setup() {
+  attachInterrupt(0, can_msg_rcv, FALLING); //Se configura interrupcion al recibir mensaje CAN
+  Serial.begin(115200);
+  mcp2515.reset();
+  mcp2515.setBitrate(CAN_125KBPS, MCP_8MHZ);
+  mcp2515.setNormalMode();
+}
+
+void loop() {
+  inReadString = serial_event(); //Se lee puerto serial y se almacena lo leido
+  char ID_in = char(inReadString[0]); //Se obtiene el ID que es el byte 0 del String leido por serial
+  int config_value = int(get_data(inReadString)); //Se obtiene el valor del parametro y se  almacena en 1 byte
+  switch (ID_in){
+    case VUV_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de VUV. Valor: ");
+        Serial.print(config_value, BIN);
+        Serial.print(" = ");
+        Serial.println(config_value*0.02);
+      #endif
+      can_msg_out.can_id = VUV_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case VOV_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de VOV. Valor: ");
+        Serial.print(config_value, BIN);
+        Serial.print(" = ");
+        Serial.println(config_value*0.02);
+      #endif
+      can_msg_out.can_id = VOV_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case DCTO_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de DCTO. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = DCTO_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case NCELLS_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de N_CELDAS. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = NCELL_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case NTEMPS_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de N SENSORES Temp. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = N_NTC_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case TSLEEP_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de TSLEEP. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = TSLEEP_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value); //Factor que se multiplica por 15ms para el tiempo que duerme el BMS
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case BAL1_8_SERIAL_ID:
+    #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de Balanceo 1-8. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = BAL1TO8_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case BAL9_12_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de Balanceo 9-12. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = BAL9TO12_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case MAX_DIFF_CELL_SERIAL_ID:
+    #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de Máxima V de diferencia entre celdas (mV) . Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = MAX_DIFF_CELL_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case TYPE_BALANCING_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de configuración del tipo de balanceo:");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = TYPE_BALANCING_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+
+    case NCELLS_PARALLEL_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de configuración del número de celdas en paralelo:");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = NCELL_PARALLEL_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    case CURRENT_OFFSET_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de configuración del offset del sensor corriente:");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = CURRENT_OFFSET_MSG_ID;
+      can_msg_out.can_dlc = 2;
+      can_msg_out.data[0] = uint8_t(config_value+32767); //Se toman los 8 bits menos significativos
+      can_msg_out.data[1] = uint8_t((config_value+32767) >> 8); //Se toman los 8 bits mas significativos
+      mcp2515.sendMessage(&can_msg_out);
+      Serial.println((can_msg_out.data[0]|(can_msg_out.data[1]<<8))-32767);
+      delay(1000);
+      break;
+      
+    case ASK_CONFIG_SERIAL_ID: //Para pedir todos los valores de config. Escribir Z255
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de pedir Config Actual. Valor: ");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = ASK_CONFIG_MSG_ID;
+      can_msg_out.can_dlc = 1;
+      can_msg_out.data[0] = uint8_t(config_value);
+      mcp2515.sendMessage(&can_msg_out);
+      break;
+    default:
+      break;
+  } //Fin del Switch
+
+}
+
