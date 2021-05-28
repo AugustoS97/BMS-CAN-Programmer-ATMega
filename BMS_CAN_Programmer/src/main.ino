@@ -291,8 +291,8 @@ void can_msg_rcv(){
     }
     case SOC_MSG_ID:{ // SOC del pack
       Serial.print(SOC_MSG_SERIAL_ID);
-      uint16_t SOC = (uint16_t(can_msg_in.data[1]) << 8) | can_msg_in.data[0];
-      Serial.println(SOC, DEC);
+      uint16_t aux = (uint16_t(can_msg_in.data[1]) << 8) | can_msg_in.data[0];
+      Serial.println(aux, DEC);
       break;}
     case SOH_MSG_ID:{ //SOH del pack
       Serial.print(SOH_MSG_SERIAL_ID);
