@@ -45,9 +45,12 @@ void can_msg_rcv(){
       uint8_t aux = can_msg_in.data[0];
       Serial.print(NCELLS_PARALLEL_SERIAL_ID);
       Serial.println(aux, DEC); //Envia por serie el valor de numero de celdas en paralelo
-      int16_t current_offset = int16_t(int16_t(uint16_t((can_msg_in.data[1] << 8)) | uint16_t(can_msg_in.data[2]) )- 32767); //Se reocntruye el offset de corriente desde 2 bytes
+      int16_t current_offset = int16_t(int16_t(uint16_t((can_msg_in.data[1] << 8)) | uint16_t(can_msg_in.data[2]) )- 32767); //Se reconstruye el offset de corriente desde 2 bytes
       Serial.print(CURRENT_OFFSET_SERIAL_ID);
-      Serial.println(current_offset, DEC);
+      Serial.println(current_offset, DEC); //Envia por serie el offset
+      aux = can_msg_in.data[3];
+      Serial.print(TSLEEP_SERIAL_ID);
+      Serial.println(aux, DEC); //Envia por serie el valor del factor que multiplica a 15 ms al tsleep
       aux = can_msg_in.data[4];
       Serial.print(TYPE_BALANCING_SERIAL_ID);
       Serial.println(aux, DEC); //Envia por serie el tipo de balanceo
@@ -209,7 +212,7 @@ void loop() {
       #endif
       can_msg_out.can_id = TSLEEP_MSG_ID;
       can_msg_out.can_dlc = 1;
-      can_msg_out.data[0] = uint8_t(config_value); //tiempo que duerme el BMS en ms
+      can_msg_out.data[0] = uint8_t(config_value); //Factor que se multiplica por 15ms para el tiempo que duerme el BMS
       mcp2515.sendMessage(&can_msg_out);
       break;
     case BAL1_8_SERIAL_ID:
