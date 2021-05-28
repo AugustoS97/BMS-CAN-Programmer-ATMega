@@ -45,6 +45,9 @@ void can_msg_rcv(){
       uint8_t aux = can_msg_in.data[0];
       Serial.print(NCELLS_PARALLEL_SERIAL_ID);
       Serial.println(aux, DEC); //Envia por serie el valor de numero de celdas en paralelo
+      int16_t current_offset = int16_t(int16_t(uint16_t((can_msg_in.data[1] << 8)) | uint16_t(can_msg_in.data[2]) )- 32767); //Se reocntruye el offset de corriente desde 2 bytes
+      Serial.print(CURRENT_OFFSET_SERIAL_ID);
+      Serial.println(current_offset, DEC);
       aux = can_msg_in.data[4];
       Serial.print(TYPE_BALANCING_SERIAL_ID);
       Serial.println(aux, DEC); //Envia por serie el tipo de balanceo
@@ -260,7 +263,20 @@ void loop() {
       can_msg_out.data[0] = uint8_t(config_value);
       mcp2515.sendMessage(&can_msg_out);
       break;
-
+    case CURRENT_OFFSET_SERIAL_ID:
+      #ifdef SERIAL_DEBUG
+        Serial.print("Mensaje de configuración del offset del sensor corriente:");
+        Serial.println(config_value, BIN);
+      #endif
+      can_msg_out.can_id = CURRENT_OFFSET_MSG_ID;
+      can_msg_out.can_dlc = 2;
+      can_msg_out.data[0] = uint8_t(config_value+32767); //Se toman los 8 bits menos significativos
+      can_msg_out.data[1] = uint8_t((config_value+32767) >> 8); //Se toman los 8 bits mas significativos
+      mcp2515.sendMessage(&can_msg_out);
+      Serial.println((can_msg_out.data[0]|(can_msg_out.data[1]<<8))-32767);
+      delay(1000);
+      break;
+      
     case ASK_CONFIG_SERIAL_ID: //Para pedir todos los valores de config. Escribir Z255
       #ifdef SERIAL_DEBUG
         Serial.print("Mensaje de pedir Config Actual. Valor: ");
