@@ -1,5 +1,8 @@
 # BMS_CAN_programer
 Firmware del nodo que recibe los datos del CANBUS y comunica con el PC por Serial y configura el BMS por CAN envíando los parámetros transmitidos desde el PC por Serial.
+
+Elemento programador y configurador del BMS desarrollado en el repositorio: https://github.com/AugustoS97/BMS-CAN-ATMega
+
 # Mensajes a Enviar por puerto Serial
 Para realizar la comunicación con el CAN debe Enviarse un mensaje por serial, configurado a 115200 baudios, formado por:
 
